@@ -170,16 +170,27 @@ def _afad_api_cek(min_buyukluk: float, limit: int) -> list[dict]:
 
 
 def _proxy_kandilli_cek(min_buyukluk: float = 0.0) -> list[dict]:
-    """orhanaydogdu.com.tr proxy API'sinden Kandilli verilerini çeker.
-    Render gibi yurtdışı sunuculardan Kandilli'ye doğrudan erişmek bazen
-    cache/eski veri döndürür; bu Türkiye'de host edilen proxy taze veriyi sunar.
+    """orhanaydogdu.com.tr proxy API'sinden Kandilli verilerini çeker."""
+    return _proxy_genel_cek("kandilli", min_buyukluk)
+
+
+def _proxy_afad_cek(min_buyukluk: float = 0.0) -> list[dict]:
+    """orhanaydogdu.com.tr proxy API'sinden AFAD verilerini çeker."""
+    return _proxy_genel_cek("afad", min_buyukluk)
+
+
+def _proxy_genel_cek(saglayici: str, min_buyukluk: float) -> list[dict]:
+    """orhanaydogdu.com.tr proxy API. saglayici: 'kandilli' | 'afad'.
+    Render gibi yurtdışı sunuculardan Kandilli/AFAD'a doğrudan erişmek bazen
+    cache/eski veri döndürür; bu Türkiye'de host edilen proxy taze veri sunar.
     """
-    url = "https://api.orhanaydogdu.com.tr/deprem/kandilli/live"
+    url = f"https://api.orhanaydogdu.com.tr/deprem/{saglayici}/live?limit=100"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                       "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "application/json",
     }
+    kaynak_adi = "AFAD" if saglayici == "afad" else "Kandilli"
     try:
         resp = requests.get(url, timeout=10, headers=headers)
         resp.raise_for_status()
@@ -207,11 +218,11 @@ def _proxy_kandilli_cek(min_buyukluk: float = 0.0) -> list[dict]:
                 "buyukluk": buyukluk,
                 "yer": d.get("title", ""),
                 "tip": "ML",
-                "kaynak": "Kandilli",
+                "kaynak": kaynak_adi,
             })
         return depremler
     except Exception as e:
-        log.warning("Proxy Kandilli API hatası: %s", e)
+        log.warning("Proxy %s API hatası: %s", kaynak_adi, e)
         return []
 
 

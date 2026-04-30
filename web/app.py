@@ -44,6 +44,8 @@ from flask import Flask, render_template, jsonify, request, send_from_directory,
 from deprem_telsiz import (
     html_den_cek,
     kandilli_den_cek,
+    _proxy_kandilli_cek,
+    _proxy_afad_cek,
     _tarihe_gore_sirala,
     _tekrarlari_kaldir,
     _tarih_filtrele,
@@ -63,14 +65,27 @@ GECERLI_ESIKLER = {1.0, 2.0, 3.0}
 
 
 def _veri_cek_simdi():
-    """AFAD + Kandilli'yi çek, birleştir, sırala. Senkron."""
+    """AFAD + Kandilli'yi çek, birleştir, sırala. Senkron.
+    Render gibi yurtdışı sunucularda doğrudan AFAD/Kandilli cache'li/eski
+    veri dönebildiği için önce Türkiye'deki proxy API kullanılır; başarısızsa
+    HTML scraping'e düşülür.
+    """
     tum = []
-    afad = html_den_cek(min_buyukluk=0.0)
+
+    # AFAD: önce proxy, başarısızsa HTML
+    afad = _proxy_afad_cek(min_buyukluk=0.0)
+    if not afad:
+        afad = html_den_cek(min_buyukluk=0.0)
     if afad:
         tum.extend(afad)
-    kandilli = kandilli_den_cek(min_buyukluk=0.0)
+
+    # Kandilli: önce proxy, başarısızsa HTML scraping
+    kandilli = _proxy_kandilli_cek(min_buyukluk=0.0)
+    if not kandilli:
+        kandilli = kandilli_den_cek(min_buyukluk=0.0)
     if kandilli:
         tum.extend(kandilli)
+
     if tum:
         tum = _tekrarlari_kaldir(tum)
         tum = _tarihe_gore_sirala(tum)
