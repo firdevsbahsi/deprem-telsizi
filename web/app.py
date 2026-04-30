@@ -53,6 +53,7 @@ except Exception as _e:
     print(f"[edge-tts] yuklenemedi: {_e}")
 
 from deprem_telsiz import (
+    afad_api_cek,
     html_den_cek,
     kandilli_den_cek,
     _proxy_kandilli_cek,
@@ -83,8 +84,11 @@ def _veri_cek_simdi():
     """
     tum = []
 
-    # AFAD: önce resmi HTML (en doğru), başarısızsa proxy
-    afad = html_den_cek(min_buyukluk=0.0)
+    # AFAD: önce resmi JSON API (en hızlı ve güncel — frontend'in kullandığı endpoint),
+    # başarısızsa HTML scraping, sonra Türkiye proxy'si.
+    afad = afad_api_cek(min_buyukluk=0.0)
+    if not afad:
+        afad = html_den_cek(min_buyukluk=0.0)
     if not afad:
         afad = _proxy_afad_cek(min_buyukluk=0.0)
     if afad:

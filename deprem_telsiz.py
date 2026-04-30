@@ -358,6 +358,68 @@ def _tarih_filtrele(depremler: list, son_saat: int) -> list:
     return filtreli
 
 
+# AFAD'ın resmi JSON API'si — son depremlerin gerçek zamanlı kaynağı.
+# Frontend (https://deprem.afad.gov.tr/last-earthquakes) bu API'yi kullanır.
+AFAD_API_URL = "https://deprem.afad.gov.tr/apiv2/event/filter"
+
+
+def afad_api_cek(min_buyukluk: float = 0.0, son_saat: int = 24) -> list:
+    """AFAD'ın resmi JSON API'sinden son depremleri çeker.
+    HTML scraping'den çok daha güvenilir; tarayıcının görünenle aynı veri.
+    """
+    try:
+        tr_saat = timezone(timedelta(hours=3))
+        simdi = datetime.now(tz=tr_saat)
+        oncesi = simdi - timedelta(hours=son_saat)
+        # API parametreleri TR saati ister (UTC değil); response 'date' alanı UTC döner.
+        fmt = "%Y-%m-%dT%H:%M:%S"
+        params = {
+            "start": oncesi.strftime(fmt),
+            "end": simdi.strftime(fmt),
+            "orderby": "timedesc",
+            "minmag": str(min_buyukluk) if min_buyukluk > 0 else "0",
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (compatible; DepremTelsiz/1.0)",
+            "Accept": "application/json",
+        }
+        r = requests.get(AFAD_API_URL, params=params, headers=headers, timeout=15)
+        r.raise_for_status()
+        data = r.json()
+        if not isinstance(data, list):
+            log.warning("AFAD API beklenmeyen yanıt: %s", str(data)[:200])
+            return []
+
+        sonuc = []
+        for ev in data:
+            try:
+                # 'date' UTC ISO ("2026-04-30T12:24:05"); TR için +3 saat
+                dt_utc = datetime.fromisoformat(ev["date"]).replace(tzinfo=timezone.utc)
+                dt_tr = dt_utc.astimezone(tr_saat)
+                sonuc.append({
+                    "tarih": dt_tr.strftime("%Y-%m-%d %H:%M:%S"),
+                    "enlem": str(ev.get("latitude", "")),
+                    "boylam": str(ev.get("longitude", "")),
+                    "derinlik": str(ev.get("depth", "")),
+                    "tip": str(ev.get("type", "")),
+                    "buyukluk": float(ev.get("magnitude", 0)),
+                    "yer": str(ev.get("location", "")),
+                    "kaynak": "AFAD",
+                })
+            except (KeyError, ValueError, TypeError) as e:
+                log.debug("AFAD API satır atlandı: %s", e)
+                continue
+
+        log.info("AFAD API: %d deprem alındı", len(sonuc))
+        return sonuc
+    except requests.RequestException as e:
+        log.warning("AFAD API hata: %s", e)
+        return []
+    except Exception as e:
+        log.warning("AFAD API beklenmeyen hata: %s", e)
+        return []
+
+
 def html_den_cek(min_buyukluk: float = 0.0) -> list[dict]:
     """AFAD HTML sayfasından son depremleri parse eder."""
     try:
