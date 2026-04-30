@@ -315,12 +315,14 @@ def _tekrarlari_kaldir(depremler: list) -> list:
     """AFAD ve Kandilli'den gelen aynı depremleri teke düşürür.
 
     Aynı deprem = tarih farkı < 2 dakika + koordinat farkı < 0.1 derece.
+    Eşleşme bulunduğunda BÜYÜK büyüklüklü olan tutulur (Kandilli ile
+    AFAD genelde 0.5'e kadar farklı okur; kullanıcı en büyüğünü görmeli).
     """
     sonuc = []
     for d in depremler:
         dt = _tarih_parse(d["tarih"])
-        tekrar = False
-        for s in sonuc:
+        eslesen_idx = -1
+        for i, s in enumerate(sonuc):
             st = _tarih_parse(s["tarih"])
             if dt and st:
                 fark = abs((dt - st).total_seconds())
@@ -330,10 +332,27 @@ def _tekrarlari_kaldir(depremler: list) -> list:
                 except (ValueError, TypeError):
                     enlem_fark = boylam_fark = 999
                 if fark < 120 and enlem_fark < 0.1 and boylam_fark < 0.1:
-                    tekrar = True
+                    eslesen_idx = i
                     break
-        if not tekrar:
+        if eslesen_idx == -1:
             sonuc.append(d)
+        else:
+            mevcut = sonuc[eslesen_idx]
+            try:
+                yeni_b = float(d.get("buyukluk", 0))
+                eski_b = float(mevcut.get("buyukluk", 0))
+            except (ValueError, TypeError):
+                yeni_b = eski_b = 0
+            if yeni_b > eski_b:
+                # Yeni kayıt daha büyük → onu tut, kaynakları birleştir
+                d = dict(d)
+                kaynaklar = {mevcut.get("kaynak", ""), d.get("kaynak", "")}
+                d["kaynak"] = "+".join(sorted(k for k in kaynaklar if k))
+                sonuc[eslesen_idx] = d
+            else:
+                # Eski büyük; sadece kaynak listesini genişlet
+                kaynaklar = {mevcut.get("kaynak", ""), d.get("kaynak", "")}
+                mevcut["kaynak"] = "+".join(sorted(k for k in kaynaklar if k))
     return sonuc
 
 
