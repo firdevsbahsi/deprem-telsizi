@@ -39,6 +39,10 @@ html, body {
 .kart.kirmizi { background: linear-gradient(135deg, #dc2626, #ef4444); }
 .kart.kirmizi.koyu  { background: linear-gradient(135deg, #991b1b, #b91c1c); }
 .kart.kirmizi.koyu2 { background: linear-gradient(135deg, #450a0a, #7f1d1d); }
+.kart.kirmizi.koyu3 { background: linear-gradient(135deg, #2e0606, #581c1c); }
+.kart.siyah         { background: linear-gradient(135deg, #1a0303, #3f0f0f); }
+.kart.siyah.koyu    { background: linear-gradient(135deg, #0a0202, #1f0707); }
+.kart.siyah.koyu2   { background: linear-gradient(135deg, #000000, #0a0202); border: 1px solid #7f1d1d; }
 
 .ana-footer {
   text-align: center;
