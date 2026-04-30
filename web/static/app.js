@@ -223,10 +223,13 @@
   function zamanFormat(tarihStr) {
     const dt = tarihParse(tarihStr);
     if (!dt) return tarihStr;
-    const fark = (Date.now() - dt.getTime()) / 1000;
-    if (fark < 60) return Math.floor(fark) + " sn önce";
-    if (fark < 3600) return Math.floor(fark / 60) + " dk önce";
-    if (fark < 86400) return Math.floor(fark / 3600) + " sa önce";
+    const bugun = new Date();
+    const ayni = dt.getFullYear() === bugun.getFullYear()
+              && dt.getMonth() === bugun.getMonth()
+              && dt.getDate() === bugun.getDate();
+    if (ayni) {
+      return dt.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
     return dt.toLocaleString("tr-TR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
   }
 
