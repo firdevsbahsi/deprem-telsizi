@@ -431,3 +431,38 @@ html, body {
   padding: 16px;
   color: #64748b;
 }
+
+/* === Harita katman butonlari === */
+.harita-katmanlar { position: absolute; top: 70px; right: 12px; z-index: 500; display: flex; flex-direction: column; gap: 6px; }
+.katman-btn { background: rgba(15,23,42,0.85); color: #e2e8f0; border: 1px solid #334155; padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; backdrop-filter: blur(6px); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.katman-btn:hover { background: rgba(30,41,59,0.95); }
+.katman-btn.aktif { background: #f59e0b; color: #0f172a; border-color: #f59e0b; font-weight: 700; }
+
+/* === Tema toggle butonu === */
+.tema-btn { background: transparent; border: 1px solid #334155; color: #e2e8f0; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+.tema-btn:hover { background: rgba(255,255,255,0.06); }
+
+/* === Acik Tema (body.tema-acik) === */
+body.tema-acik { background: #f1f5f9; color: #0f172a; }
+body.tema-acik .ana-header .alt { color: #475569; }
+body.tema-acik .ana-footer { color: #64748b; }
+body.tema-acik .izleme-header { background: #ffffff !important; color: #0f172a; border-bottom: 1px solid #cbd5e1; }
+body.tema-acik .izleme-header h1 { color: #0f172a; }
+body.tema-acik .izleme-header .geri { color: #0f172a; }
+body.tema-acik .deprem { background: #ffffff; border-color: #cbd5e1; color: #0f172a; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+body.tema-acik .deprem .yer { color: #0f172a; }
+body.tema-acik .deprem .meta { color: #64748b; }
+body.tema-acik .deprem.okundu { opacity: 0.65; }
+body.tema-acik .form, body.tema-acik .grup { color: #0f172a; }
+body.tema-acik .grup-baslik { color: #0f172a; }
+body.tema-acik input, body.tema-acik select, body.tema-acik textarea { background: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; }
+body.tema-acik .ses-btn, body.tema-acik .btn { background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; }
+body.tema-acik .btn:hover { background: #e2e8f0; }
+body.tema-acik .alt-menu { background: #ffffff; border-top: 1px solid #cbd5e1; }
+body.tema-acik .alt-btn { color: #0f172a; }
+body.tema-acik .ipucu { color: #64748b; }
+body.tema-acik .rozet { background: #e2e8f0; color: #0f172a; }
+body.tema-acik .test-paneli { background: #f8fafc; }
+body.tema-acik .katman-btn { background: rgba(255,255,255,0.95); color: #0f172a; border-color: #cbd5e1; }
+body.tema-acik .tema-btn { color: #0f172a; border-color: #cbd5e1; }
+

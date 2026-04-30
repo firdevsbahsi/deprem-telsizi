@@ -7,10 +7,12 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#0f172a" />
   <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/tema.js" defer></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 </head>
 <body class="harita-body">
   <header class="izleme-header" style="background:#1e293b;">
@@ -21,8 +23,15 @@
       <option value="1">M1+</option>
       <option value="2" selected>M2+</option>
       <option value="3">M3+</option>
+      <option value="4">M4+</option>
+      <option value="5">M5+</option>
     </select>
   </header>
+
+  <div class="harita-katmanlar">
+    <button id="btn-heatmap" class="katman-btn" type="button">🌡️ Heatmap</button>
+    <button id="btn-fay" class="katman-btn" type="button">⚡ Fay Hatları</button>
+  </div>
 
   <div id="harita"></div>
 

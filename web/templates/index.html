@@ -8,9 +8,13 @@
   <meta name="theme-color" content="#0f172a" />
   <link rel="apple-touch-icon" href="/static/icon-192.png" />
   <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/tema.js" defer></script>
 </head>
 <body class="ana">
   <header class="ana-header">
+    <button id="tema-btn" class="tema-btn" type="button"
+            style="position:absolute; top:12px; right:12px;"
+            title="Tema değiştir">🌙</button>
     <h1>🌍 AFAD Deprem İzleme</h1>
     <p class="alt">Eşik seçin — her seviyenin kendi sayfası, kendi sesli uyarısı vardır.</p>
   </header>
@@ -90,6 +94,21 @@
         document.getElementById("pwa-durum").textContent = "📱 PWA hazır — Ana ekrana ekleyebilirsiniz.";
       }).catch(() => {});
     }
+    // Tema butonu
+    (function () {
+      const btn = document.getElementById("tema-btn");
+      function guncelle() {
+        if (window.TemaYonetici) btn.textContent = window.TemaYonetici.simge();
+      }
+      btn.addEventListener("click", () => {
+        if (!window.TemaYonetici) return;
+        const yeni = window.TemaYonetici.dongu();
+        guncelle();
+        btn.title = "Tema: " + ({ koyu: "Koyu", acik: "Açık", oto: "Otomatik (sistem)" }[yeni]);
+      });
+      // Defer'li tema.js yüklenince güncelle
+      window.addEventListener("load", guncelle);
+    })();
   </script>
 </body>
 </html>
