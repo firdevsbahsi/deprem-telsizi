@@ -14,8 +14,16 @@
   const konumBilgi = $("konum-bilgi");
   const sesHiz = $("ses-hiz");
   const sesSecim = $("ses-secim");
-  const sesTest = $("ses-test");
   const sifirla = $("sifirla");
+  // Test paneli
+  const testSes = $("test-ses");
+  const testBip = $("test-bip");
+  const testTitres = $("test-titres");
+  const testTam = $("test-tam");
+  const testMesaj = $("test-mesaj");
+  const testOzel = $("test-ozel");
+  const testGercek = $("test-gercek");
+  const testDurum = $("test-durum");
 
   function oku(k, v) {
     try {
@@ -82,19 +90,121 @@
   });
   sesHiz.addEventListener("change", () => yaz("ayar_ses_hiz", parseFloat(sesHiz.value)));
   sesSecim.addEventListener("change", () => yaz("ayar_ses_adi", sesSecim.value));
-  sesTest.addEventListener("click", () => {
-    const u = new SpeechSynthesisUtterance(
-      "Bu bir test. Afet ve Acil Durum Başkanlığı verilerine göre saat 12:00 sularında İstanbul ve çevresinde 3.5 büyüklüğünde yer sarsıntısı meydana gelmiştir."
-    );
-    u.lang = "tr-TR";
-    u.rate = parseFloat(sesHiz.value);
-    const ad = sesSecim.value;
-    if (ad) {
-      const v = speechSynthesis.getVoices().find(x => x.name === ad);
-      if (v) u.voice = v;
+
+  // ── Test paneli yardımcıları ──────────────────────────
+  let audioCtx = null;
+  function bipCal() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const simdi = audioCtx.currentTime;
+      [0, 0.22].forEach((gec, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = 880 + i * 220;
+        gain.gain.setValueAtTime(0.0001, simdi + gec);
+        gain.gain.exponentialRampToValueAtTime(0.35, simdi + gec + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, simdi + gec + 0.18);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(simdi + gec);
+        osc.stop(simdi + gec + 0.2);
+      });
+    } catch (e) {}
+  }
+
+  function konus(metin) {
+    return new Promise((resolve) => {
+      const u = new SpeechSynthesisUtterance(metin);
+      u.lang = "tr-TR";
+      u.rate = parseFloat(sesHiz.value) || 1.0;
+      const ad = sesSecim.value;
+      if (ad) {
+        const v = speechSynthesis.getVoices().find(x => x.name === ad);
+        if (v) u.voice = v;
+      }
+      u.onend = () => resolve();
+      u.onerror = () => resolve();
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+    });
+  }
+
+  function durum(s, renk) {
+    testDurum.textContent = s;
+    testDurum.style.color = renk || "";
+  }
+
+  // Buton 1: Örnek anons
+  testSes.addEventListener("click", async () => {
+    durum("Konuşuyor…", "#fbbf24");
+    await konus("Bu bir test. Afet ve Acil Durum Başkanlığı verilerine göre saat 12:00 sularında İstanbul ve çevresinde 3.5 büyüklüğünde yer sarsıntısı meydana gelmiştir.");
+    durum("✓ Tamamlandı", "#22c55e");
+  });
+
+  // Buton 2: Sadece bip
+  testBip.addEventListener("click", () => {
+    bipCal();
+    durum("✓ Bip çalındı", "#22c55e");
+  });
+
+  // Buton 3: Titreşim
+  testTitres.addEventListener("click", () => {
+    if ("vibrate" in navigator) {
+      navigator.vibrate([200, 100, 200, 100, 400]);
+      durum("✓ Titreşim gönderildi (telefonda hissedilir)", "#22c55e");
+    } else {
+      durum("⚠ Bu cihaz titreşim desteklemiyor", "#ef4444");
     }
-    speechSynthesis.cancel();
-    speechSynthesis.speak(u);
+  });
+
+  // Buton 4: Tam simülasyon (gerçek deprem alarmı gibi)
+  testTam.addEventListener("click", async () => {
+    durum("🚨 SİMÜLASYON BAŞLADI", "#ef4444");
+    bipCal();
+    if ("vibrate" in navigator) navigator.vibrate([200, 100, 200, 100, 400]);
+    await new Promise(r => setTimeout(r, 700));
+    await konus("Dikkat. Bu bir test simülasyonudur. Afet ve Acil Durum Başkanlığı verilerine göre saat " +
+      new Date().toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) +
+      " sularında Marmara Denizi ve çevresinde 5.2 büyüklüğünde yer sarsıntısı meydana gelmiştir.");
+    durum("✓ Simülasyon tamamlandı", "#22c55e");
+  });
+
+  // Özel mesaj
+  testOzel.addEventListener("click", async () => {
+    const m = (testMesaj.value || "").trim();
+    if (!m) { durum("⚠ Önce bir metin yaz", "#ef4444"); return; }
+    durum("Konuşuyor…", "#fbbf24");
+    await konus(m);
+    durum("✓ Tamamlandı", "#22c55e");
+  });
+
+  // Gerçek deprem
+  testGercek.addEventListener("click", async () => {
+    durum("📡 Deprem verisi çekiliyor…", "#fbbf24");
+    testGercek.disabled = true;
+    try {
+      const min = oku("ayar_min", 2.0);
+      const r = await fetch("/api/depremler?min=" + min, { cache: "no-store" });
+      const v = await r.json();
+      if (!v.ok || !v.depremler || v.depremler.length === 0) {
+        durum("⚠ Bu eşikte deprem yok (min " + min + ")", "#ef4444");
+      } else {
+        const d = v.depremler[0];
+        bipCal();
+        if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+        await new Promise(rr => setTimeout(rr, 600));
+        const saat = (d.tarih || "").split(" ")[1]?.substring(0,5) || "";
+        const kurum = d.kaynak === "Kandilli"
+          ? "Kandilli Rasathanesi verilerine göre"
+          : "Afet ve Acil Durum Başkanlığı verilerine göre";
+        durum(`🔊 ${d.buyukluk.toFixed(1)} ${d.yer.substring(0,40)}…`, "#22c55e");
+        await konus(`${kurum} saat ${saat} sularında ${d.yer} ve çevresinde ${d.buyukluk.toFixed(1)} büyüklüğünde yer sarsıntısı meydana gelmiştir.`);
+        durum("✓ Tamamlandı", "#22c55e");
+      }
+    } catch (e) {
+      durum("⚠ Bağlantı hatası: " + e.message, "#ef4444");
+    }
+    testGercek.disabled = false;
   });
   sifirla.addEventListener("click", () => {
     if (!confirm("Tüm ayarlar sıfırlansın mı?")) return;

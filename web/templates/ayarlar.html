@@ -53,7 +53,27 @@
         <span>Ses seçimi</span>
         <select id="ses-secim"><option value="">(otomatik tr-TR)</option></select>
       </label>
-      <button id="ses-test" class="btn">🔊 Sesi Dene</button>
+    </section>
+
+    <section class="grup test-paneli">
+      <label class="grup-baslik">🧪 Test Alanı</label>
+      <small class="ipucu">Sesi, bip ve titreşimi burada deneyebilirsin.</small>
+
+      <div class="test-buton-grid">
+        <button id="test-ses" class="btn">🔊 Örnek Anonsu Oku</button>
+        <button id="test-bip" class="btn">🔔 Sadece Bip</button>
+        <button id="test-titres" class="btn">📳 Titreşim</button>
+        <button id="test-tam" class="btn vurgu">🚨 Tam Simülasyon</button>
+      </div>
+
+      <label class="grup-baslik" style="margin-top:14px;">Özel mesaj dene</label>
+      <textarea id="test-mesaj" rows="3" placeholder="Buraya yazdığın metni okur..."
+        style="width:100%;padding:8px;border-radius:8px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;">Bu bir test mesajıdır. Sistem çalışıyor.</textarea>
+      <button id="test-ozel" class="btn" style="margin-top:8px;">▶ Yazdığım Metni Oku</button>
+
+      <label class="grup-baslik" style="margin-top:14px;">Gerçek deprem ile test</label>
+      <button id="test-gercek" class="btn">📡 En Son Depremi Çek ve Oku</button>
+      <small id="test-durum" class="ipucu" style="display:block;margin-top:6px;min-height:16px;"></small>
     </section>
 
     <section class="grup">
