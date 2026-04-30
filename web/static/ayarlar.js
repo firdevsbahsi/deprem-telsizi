@@ -43,8 +43,16 @@
   yaricap.value = oku("ayar_yaricap", 500);
   yaricapDeger.textContent = yaricap.value + " km";
   yaricapRow.style.display = konumAktif.checked ? "" : "none";
-  sesHiz.value = oku("ayar_ses_hiz", 1.0);
-  sesSeviyesi.value = oku("ayar_ses_seviyesi", 1.0);
+  // Select'lerde option value="1.0" gibi metin olduğu için sayıyı toFixed ile uyumla
+  function selectAyarla(sel, deger, secenekler) {
+    const s = parseFloat(deger);
+    // Tam eşleşen option'u bul
+    const opt = Array.from(sel.options).find(o => parseFloat(o.value) === s);
+    if (opt) sel.value = opt.value;
+    else sel.value = sel.options[secenekler.varsayilanIdx || 0].value;
+  }
+  selectAyarla(sesHiz, oku("ayar_ses_hiz", 1.0), { varsayilanIdx: 2 });        // 1.0×
+  selectAyarla(sesSeviyesi, oku("ayar_ses_seviyesi", 1.0), { varsayilanIdx: 3 }); // %100
   // Motor: "tarayici" | "sunucu" + isim "ahmet"|"emel"
   (function () {
     const motor = oku("ayar_ses_motor", "tarayici");
