@@ -466,3 +466,11 @@ body.tema-acik .test-paneli { background: #f8fafc; }
 body.tema-acik .katman-btn { background: rgba(255,255,255,0.95); color: #0f172a; border-color: #cbd5e1; }
 body.tema-acik .tema-btn { color: #0f172a; border-color: #cbd5e1; }
 
+
+.deprem .sag { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.deprem .oku-btn { background: rgba(59,130,246,0.15); border: 1px solid #3b82f6; color: #93c5fd; width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer; padding: 0; line-height: 1; transition: all 0.15s; }
+.deprem .oku-btn:hover { background: #3b82f6; color: white; }
+.deprem .oku-btn:active { transform: scale(0.92); }
+body.tema-acik .deprem .oku-btn { background: #eff6ff; color: #2563eb; border-color: #93c5fd; }
+body.tema-acik .deprem .oku-btn:hover { background: #2563eb; color: white; }
+

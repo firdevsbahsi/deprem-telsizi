@@ -54,6 +54,7 @@
   let okumaKuyrugu = [];
   let okuniyor = false;
   let okundularLog = []; // "Ŝu deprem okundu" göstergesi için (en son 10 id)
+  let sonVeri = []; // son fetch'teki deprem listesi (yeniden oku butonu için)
 
   // ── Service Worker ─────────────────────────────────────
   if ("serviceWorker" in navigator) {
@@ -209,8 +210,17 @@
 
   function konus(metin) {
     const motor = ayarOku("ayar_ses_motor", "tarayici"); // "tarayici" | "sunucu"
-    if (motor === "sunucu") return konusSunucu(metin);
-    return konusTarayici(metin);
+    const asilKonus = (motor === "sunucu") ? konusSunucu(metin) : konusTarayici(metin);
+    // 20 sn'lik guvenlik timeout: sessiz fail durumunda kuyruk kilitlenmesin
+    return new Promise((resolve) => {
+      let bitti = false;
+      const t = setTimeout(() => {
+        if (!bitti) { bitti = true; console.warn("[tts] timeout"); resolve(); }
+      }, 20000);
+      asilKonus.then(() => {
+        if (!bitti) { bitti = true; clearTimeout(t); resolve(); }
+      });
+    });
   }
 
   // ── Kuyruk işleyici (depremleri tek tek sırayla okur) ───
@@ -305,10 +315,27 @@
             <span class="kaynak-rozet">${html_kacis(d.kaynak)}</span>
           </div>
         </div>
-        <div class="zaman">${zamanFormat(d.tarih)}</div>
+        <div class="sag">
+          <div class="zaman">${zamanFormat(d.tarih)}</div>
+          <button class="oku-btn" type="button" data-oku-id="${html_kacis(d.id)}" title="Sesli oku">🔁</button>
+        </div>
       </div>
     `;
   }
+
+  // Kart üzerindeki "🔁 yeniden oku" butonu - delege dinleyici
+  liste.addEventListener("click", (ev) => {
+    const btn = ev.target && ev.target.closest && ev.target.closest("[data-oku-id]");
+    if (!btn) return;
+    ev.preventDefault();
+    const id = btn.getAttribute("data-oku-id");
+    if (!id || !sonVeri || !sonVeri.length) return;
+    const dep = sonVeri.find((x) => x.id === id);
+    if (!dep) return;
+    audioHazirla();
+    okumaKuyrugu.push(dep);
+    kuyruguIsle();
+  });
 
   // ── Yenileme döngüsü ───────────────────────────────────
   function apiUrl() {
@@ -327,6 +354,7 @@
       const yanit = await fetch(apiUrl(), { cache: "no-store" });
       const veri = await yanit.json();
       if (!veri.ok) throw new Error("api hata");
+      sonVeri = veri.depremler || [];
 
       // Listeyi çiz
       if (veri.depremler.length === 0) {
