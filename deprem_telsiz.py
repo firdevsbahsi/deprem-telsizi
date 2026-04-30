@@ -104,11 +104,16 @@ def deprem_verisi_cek(min_buyukluk: float = 0.0, limit: int = 100,
         if afad_api:
             tum_depremler.extend(afad_api)
 
-    # 3) Kandilli
-    kandilli = kandilli_den_cek(min_buyukluk)
+    # 3) Kandilli — önce hızlı proxy API, başarısızsa HTML scraping
+    kandilli = _proxy_kandilli_cek(min_buyukluk)
     if kandilli:
-        log.info("Kandilli: %d deprem", len(kandilli))
+        log.info("Kandilli (proxy API): %d deprem", len(kandilli))
         tum_depremler.extend(kandilli)
+    else:
+        kandilli = kandilli_den_cek(min_buyukluk)
+        if kandilli:
+            log.info("Kandilli (HTML): %d deprem", len(kandilli))
+            tum_depremler.extend(kandilli)
 
     if not tum_depremler:
         return []
@@ -162,6 +167,52 @@ def _afad_api_cek(min_buyukluk: float, limit: int) -> list[dict]:
         except Exception as e:
             log.warning("API hatası (%s): %s", api_url, e)
     return []
+
+
+def _proxy_kandilli_cek(min_buyukluk: float = 0.0) -> list[dict]:
+    """orhanaydogdu.com.tr proxy API'sinden Kandilli verilerini çeker.
+    Render gibi yurtdışı sunuculardan Kandilli'ye doğrudan erişmek bazen
+    cache/eski veri döndürür; bu Türkiye'de host edilen proxy taze veriyi sunar.
+    """
+    url = "https://api.orhanaydogdu.com.tr/deprem/kandilli/live"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+    }
+    try:
+        resp = requests.get(url, timeout=10, headers=headers)
+        resp.raise_for_status()
+        veri = resp.json()
+        sonuclar = veri.get("result") if isinstance(veri, dict) else None
+        if not isinstance(sonuclar, list):
+            return []
+
+        depremler = []
+        for d in sonuclar:
+            try:
+                buyukluk = float(d.get("mag", 0) or 0)
+            except (TypeError, ValueError):
+                buyukluk = 0.0
+            if buyukluk < min_buyukluk:
+                continue
+            koord = (d.get("geojson") or {}).get("coordinates") or [None, None]
+            lon = koord[0] if len(koord) > 0 else None
+            lat = koord[1] if len(koord) > 1 else None
+            depremler.append({
+                "tarih": d.get("date_time", ""),
+                "enlem": str(lat) if lat is not None else "",
+                "boylam": str(lon) if lon is not None else "",
+                "derinlik": str(d.get("depth", "")),
+                "buyukluk": buyukluk,
+                "yer": d.get("title", ""),
+                "tip": "ML",
+                "kaynak": "Kandilli",
+            })
+        return depremler
+    except Exception as e:
+        log.warning("Proxy Kandilli API hatası: %s", e)
+        return []
 
 
 def kandilli_den_cek(min_buyukluk: float = 0.0) -> list[dict]:
