@@ -49,6 +49,7 @@
 
   let sesAktif = localStorage.getItem(SAKLA_KEY) !== "0";
   let okunanIdler = new Set(); // bu oturumda okuduklarımız
+  let ilkYukleme = true; // ilk fetch'te listeyi sessizce "görüldü" işaretle
   let okumaKuyrugu = [];
   let okuniyor = false;
   let okundularLog = []; // "Ŝu deprem okundu" göstergesi için (en son 10 id)
@@ -299,28 +300,30 @@
           .join("");
       }
 
-      // Sadece BAŞLANGIÇTAN sonraki + henüz okunmamış olanları al
-      const okunacaklar = [];
-      for (const d of veri.depremler) {
-        const dt = tarihParse(d.tarih);
-        if (!dt) continue;
-        if (dt.getTime() <= BASLANGIC) continue;
-        if (okunanIdler.has(d.id)) continue;
-        okunacaklar.push(d);
-      }
-
-      // Eskiden yeniye oku (baslat.bat: yeniler.reverse())
-      okunacaklar.sort((a, b) => tarihParse(a.tarih) - tarihParse(b.tarih));
-
-      if (okunacaklar.length > 0 && sesAktif) {
-        for (const d of okunacaklar) {
-          okunanIdler.add(d.id);
-          okumaKuyrugu.push(d);
-        }
-        kuyruguIsle();
+      // İlk yüklemede listeyi sessizce "görüldü" işaretle.
+      // Sonraki yüklemelerde API'ye düşen YENİ id'leri (tarihi ne olursa olsun)
+      // sesli oku — Kandilli/AFAD geç yayınlasa bile yakalansın.
+      if (ilkYukleme) {
+        for (const d of veri.depremler) okunanIdler.add(d.id);
+        ilkYukleme = false;
       } else {
-        // Ses kapalıyken bile "okundu" say (geri açınca eski olanları okumasın)
-        for (const d of okunacaklar) okunanIdler.add(d.id);
+        const okunacaklar = [];
+        for (const d of veri.depremler) {
+          if (okunanIdler.has(d.id)) continue;
+          okunacaklar.push(d);
+        }
+        // Eskiden yeniye oku
+        okunacaklar.sort((a, b) => tarihParse(a.tarih) - tarihParse(b.tarih));
+
+        if (okunacaklar.length > 0 && sesAktif) {
+          for (const d of okunacaklar) {
+            okunanIdler.add(d.id);
+            okumaKuyrugu.push(d);
+          }
+          kuyruguIsle();
+        } else {
+          for (const d of okunacaklar) okunanIdler.add(d.id);
+        }
       }
 
       durum.textContent = `✓ ${veri.guncelleme} · ${veri.toplam} deprem · başl. ${BASLANGIC_STR}`;
