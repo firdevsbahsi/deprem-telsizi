@@ -176,17 +176,28 @@
 
   function konusSunucu(metin, isim) {
     return new Promise((resolve) => {
+      const hiz = parseFloat(sesHiz.value) || 1.0;
+      const url = "/api/tts?ses=" + encodeURIComponent(isim || "ahmet")
+                + "&hiz=" + encodeURIComponent(hiz)
+                + "&metin=" + encodeURIComponent(metin);
+      const dusus = () => konusTarayici(metin).then(resolve);
       try {
-        const hiz = parseFloat(sesHiz.value) || 1.0;
-        const url = "/api/tts?ses=" + encodeURIComponent(isim || "ahmet")
-                  + "&hiz=" + encodeURIComponent(hiz)
-                  + "&metin=" + encodeURIComponent(metin);
-        const audio = new Audio(url);
-        audio.volume = parseFloat(sesSeviyesi.value) || 1.0;
-        audio.onended = () => resolve();
-        audio.onerror = () => { konusTarayici(metin).then(resolve); };
-        audio.play().catch(() => konusTarayici(metin).then(resolve));
-      } catch (e) { konusTarayici(metin).then(resolve); }
+        fetch(url, { cache: "force-cache" })
+          .then((r) => { if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
+          .then((blob) => {
+            const objUrl = URL.createObjectURL(blob);
+            const audio = new Audio();
+            audio.preload = "auto";
+            audio.src = objUrl;
+            audio.volume = parseFloat(sesSeviyesi.value) || 1.0;
+            const temizle = () => { try { URL.revokeObjectURL(objUrl); } catch(e){} };
+            audio.onended = () => { temizle(); resolve(); };
+            audio.onerror = () => { temizle(); dusus(); };
+            audio.oncanplaythrough = () => { audio.play().catch(() => { temizle(); dusus(); }); };
+            setTimeout(() => { if (audio.paused) audio.play().catch(() => { temizle(); dusus(); }); }, 800);
+          })
+          .catch(() => dusus());
+      } catch (e) { dusus(); }
     });
   }
 

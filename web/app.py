@@ -374,7 +374,9 @@ def api_tts():
             mp3 = _TTS_CACHE.pop(cache_key)
             _TTS_CACHE[cache_key] = mp3  # LRU: en sona
             return Response(mp3, mimetype="audio/mpeg",
-                            headers={"Cache-Control": "public, max-age=3600"})
+                            headers={"Cache-Control": "public, max-age=3600",
+                                     "Content-Length": str(len(mp3)),
+                                     "Accept-Ranges": "bytes"})
 
     try:
         mp3 = _tts_uret(metin, ses_full, hiz_yuzde)
@@ -391,7 +393,9 @@ def api_tts():
             _TTS_CACHE.popitem(last=False)
 
     return Response(mp3, mimetype="audio/mpeg",
-                    headers={"Cache-Control": "public, max-age=3600"})
+                    headers={"Cache-Control": "public, max-age=3600",
+                             "Content-Length": str(len(mp3)),
+                             "Accept-Ranges": "bytes"})
 
 
 # ── Ana ──────────────────────────────────────────────────────────────────────

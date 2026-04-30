@@ -176,27 +176,34 @@
 
   // Sunucu TTS (edge-tts: Microsoft Ahmet/Emel) - Win7 dahil tum cihazlarda
   // ayni yuksek kaliteli ses. Hata olursa tarayici TTS'ine duser.
+  // Onemli: MP3'u stream etmek yerine fetch+blob ile TAM indirip oynatiyoruz;
+  // Win7/yavas baglantida streaming underrun -> citirti olusabiliyor.
   function konusSunucu(metin) {
     return new Promise((resolve) => {
+      const ses = ayarOku("ayar_ses_motor_isim", "ahmet"); // ahmet | emel
+      const hiz = parseFloat(A.sesHiz) || 1.0;
+      const url = "/api/tts?ses=" + encodeURIComponent(ses)
+                + "&hiz=" + encodeURIComponent(hiz)
+                + "&metin=" + encodeURIComponent(metin);
+      const dusus = () => konusTarayici(metin).then(resolve);
       try {
-        const ses = ayarOku("ayar_ses_motor_isim", "ahmet"); // ahmet | emel
-        const hiz = parseFloat(A.sesHiz) || 1.0;
-        const url = "/api/tts?ses=" + encodeURIComponent(ses)
-                  + "&hiz=" + encodeURIComponent(hiz)
-                  + "&metin=" + encodeURIComponent(metin);
-        const audio = new Audio(url);
-        audio.volume = parseFloat(A.sesSeviyesi) || 1.0;
-        audio.onended = () => resolve();
-        audio.onerror = () => {
-          console.warn("[tts] sunucu TTS hata, tarayici sesine dusuluyor");
-          konusTarayici(metin).then(resolve);
-        };
-        audio.play().catch(() => {
-          konusTarayici(metin).then(resolve);
-        });
-      } catch (e) {
-        konusTarayici(metin).then(resolve);
-      }
+        fetch(url, { cache: "force-cache" })
+          .then((r) => { if (!r.ok) throw new Error("http " + r.status); return r.blob(); })
+          .then((blob) => {
+            const objUrl = URL.createObjectURL(blob);
+            const audio = new Audio();
+            audio.preload = "auto";
+            audio.src = objUrl;
+            audio.volume = parseFloat(A.sesSeviyesi) || 1.0;
+            const temizle = () => { try { URL.revokeObjectURL(objUrl); } catch(e){} };
+            audio.onended = () => { temizle(); resolve(); };
+            audio.onerror = () => { temizle(); console.warn("[tts] audio hata"); dusus(); };
+            audio.oncanplaythrough = () => { audio.play().catch(() => { temizle(); dusus(); }); };
+            // Bazi tarayicilarda canplaythrough tetiklenmezse 800 ms sonra zorla baslat
+            setTimeout(() => { if (audio.paused) audio.play().catch(() => { temizle(); dusus(); }); }, 800);
+          })
+          .catch((e) => { console.warn("[tts] fetch hata", e); dusus(); });
+      } catch (e) { dusus(); }
     });
   }
 
