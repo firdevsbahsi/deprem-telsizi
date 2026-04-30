@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>İstatistikler</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="sayfa">
+  <header class="izleme-header" style="background:#1e293b;">
+    <a href="/" class="geri">←</a>
+    <h1>📊 İstatistikler</h1>
+    <span style="width:40px"></span>
+  </header>
+
+  <main class="istatistik">
+    <div class="ist-secim">
+      <button class="ist-sec aktif" data-min="0">Tümü</button>
+      <button class="ist-sec" data-min="1">M1+</button>
+      <button class="ist-sec" data-min="2">M2+</button>
+      <button class="ist-sec" data-min="3">M3+</button>
+    </div>
+
+    <div class="ozet-grid">
+      <div class="ozet-kart">
+        <div class="ozet-buyuk" id="ozet-toplam">—</div>
+        <div class="ozet-alt">Toplam (24 saat)</div>
+      </div>
+      <div class="ozet-kart">
+        <div class="ozet-buyuk" id="ozet-ortalama">—</div>
+        <div class="ozet-alt">Ortalama büyüklük</div>
+      </div>
+      <div class="ozet-kart" id="ozet-enbuyuk-kart">
+        <div class="ozet-buyuk" id="ozet-enbuyuk">—</div>
+        <div class="ozet-alt" id="ozet-enbuyuk-yer">En büyük</div>
+      </div>
+    </div>
+
+    <section class="grup">
+      <h2>Saatlik Dağılım (son 24 saat)</h2>
+      <canvas id="chart-saatlik" height="180"></canvas>
+    </section>
+
+    <section class="grup">
+      <h2>En Aktif Bölgeler</h2>
+      <ol id="aktif-bolgeler" class="bolge-liste"><li>Yükleniyor…</li></ol>
+    </section>
+  </main>
+
+  <script src="/static/istatistik.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ayarlar</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="sayfa">
+  <header class="izleme-header" style="background:#1e293b;">
+    <a href="/" class="geri">←</a>
+    <h1>🛠️ Ayarlar</h1>
+    <span style="width:40px"></span>
+  </header>
+
+  <main class="form">
+    <section class="grup">
+      <label class="grup-baslik">Minimum Büyüklük</label>
+      <div class="slider-row">
+        <input type="range" id="min-buyukluk" min="1.0" max="7.0" step="0.1" value="2.0" />
+        <span id="min-deger" class="rozet">2.0</span>
+      </div>
+      <small class="ipucu">Bu eşik <b>Özel İzleme</b> sayfasında kullanılır.</small>
+    </section>
+
+    <section class="grup">
+      <label class="grup-baslik">Konum Filtresi</label>
+      <label class="satir">
+        <input type="checkbox" id="konum-aktif" />
+        <span>Sadece konumumun yakınındaki depremler</span>
+      </label>
+      <div class="slider-row" id="yaricap-row" style="display:none;">
+        <input type="range" id="yaricap" min="50" max="2000" step="50" value="500" />
+        <span id="yaricap-deger" class="rozet">500 km</span>
+      </div>
+      <button id="konum-al" class="btn">📍 Konumumu Al</button>
+      <small id="konum-bilgi" class="ipucu"></small>
+    </section>
+
+    <section class="grup">
+      <label class="grup-baslik">Sesli Anons</label>
+      <label class="satir">
+        <span>Konuşma hızı</span>
+        <select id="ses-hiz">
+          <option value="0.85">Yavaş</option>
+          <option value="1.0" selected>Normal</option>
+          <option value="1.15">Hızlı</option>
+        </select>
+      </label>
+      <label class="satir">
+        <span>Ses seçimi</span>
+        <select id="ses-secim"><option value="">(otomatik tr-TR)</option></select>
+      </label>
+      <button id="ses-test" class="btn">🔊 Sesi Dene</button>
+    </section>
+
+    <section class="grup">
+      <a href="/ozel" class="btn buyuk">Bu ayarlarla Özel İzlemeyi Aç →</a>
+    </section>
+
+    <section class="grup">
+      <button id="sifirla" class="btn tehlike">Tüm Ayarları Sıfırla</button>
+    </section>
+  </main>
+
+  <script src="/static/ayarlar.js"></script>
+</body>
+</html>

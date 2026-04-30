@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{{ baslik|default('M' ~ esik ~ '.0+') }} — Deprem İzleme</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="{{ baslik_renk }}" />
+  <link rel="apple-touch-icon" href="/static/icon-192.png" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="izleme" data-esik="{{ esik }}" data-ozel="{{ '1' if ozel|default(false) else '0' }}" style="--vurgu: {{ baslik_renk }};">
+  <header class="izleme-header">
+    <a href="/" class="geri">←</a>
+    <h1 id="baslik">{{ baslik|default('M' ~ esik ~ '.0+ İzleme') }}</h1>
+    <button id="btn-test" class="ses-btn" title="Sesi dene" style="margin-right:4px;">🔊</button>
+    <button id="btn-ses" class="ses-btn" title="Sesli uyarı aç/kapat">🔔</button>
+  </header>
+
+  <div class="durum-cubugu">
+    <span id="durum">Yükleniyor…</span>
+    <span id="sayac">—</span>
+  </div>
+
+  <main id="liste" class="liste">
+    <div class="bos">Veri bekleniyor…</div>
+  </main>
+
+  <footer class="izleme-footer">
+    <small>AFAD + Kandilli · 30 sn'de bir yenilenir · son 24 saat</small>
+  </footer>
+
+  <audio id="bip" preload="auto">
+    <source src="data:audio/wav;base64,UklGRoQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YWAAAAAA" type="audio/wav" />
+  </audio>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

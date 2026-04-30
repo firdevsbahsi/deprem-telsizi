@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>AFAD Deprem İzleme</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="apple-touch-icon" href="/static/icon-192.png" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="ana">
+  <header class="ana-header">
+    <h1>🌍 AFAD Deprem İzleme</h1>
+    <p class="alt">Eşik seçin — her seviyenin kendi sayfası, kendi sesli uyarısı vardır.</p>
+  </header>
+
+  <main class="kart-grid">
+    <a class="kart yesil" href="/m1">
+      <div class="kart-buyuk">M1.0+</div>
+      <div class="kart-aciklama">Hassas izleme — küçük sarsıntılar dahil her şey.</div>
+      <div class="kart-buton">Aç →</div>
+    </a>
+
+    <a class="kart sari" href="/m2">
+      <div class="kart-buyuk">M2.0+</div>
+      <div class="kart-aciklama">Orta — hissedilebilir depremler.</div>
+      <div class="kart-buton">Aç →</div>
+    </a>
+
+    <a class="kart kirmizi" href="/m3">
+      <div class="kart-buyuk">M3.0+</div>
+      <div class="kart-aciklama">Önemli — yalnızca dikkat çeken depremler.</div>
+      <div class="kart-buton">Aç →</div>
+    </a>
+  </main>
+
+  <nav class="alt-menu">
+    <a href="/ozel"       class="alt-btn">⚙️<span>Özel</span></a>
+    <a href="/istatistik" class="alt-btn">📊<span>İstatistik</span></a>
+    <a href="/harita"     class="alt-btn">🗺️<span>Harita</span></a>
+    <a href="/ayarlar"    class="alt-btn">🛠️<span>Ayarlar</span></a>
+  </nav>
+
+  <footer class="ana-footer">
+    <p>Veri kaynağı: AFAD + Kandilli Rasathanesi · Son 24 saat</p>
+    <p id="pwa-durum"></p>
+  </footer>
+
+  <script>
+    // Service worker kaydı
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").then(() => {
+        document.getElementById("pwa-durum").textContent = "📱 PWA hazır — Ana ekrana ekleyebilirsiniz.";
+      }).catch(() => {});
+    }
+  </script>
+</body>
+</html>

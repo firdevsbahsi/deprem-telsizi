@@ -1,0 +1,31 @@
+{
+  "name": "AFAD Deprem İzleme",
+  "short_name": "Deprem",
+  "description": "AFAD ve Kandilli verilerinden anlık deprem takibi (M1/M2/M3 ayrı arayüzler).",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "M1.0+", "url": "/m1", "short_name": "M1+" },
+    { "name": "M2.0+", "url": "/m2", "short_name": "M2+" },
+    { "name": "M3.0+", "url": "/m3", "short_name": "M3+" }
+  ]
+}
