@@ -42,7 +42,9 @@
   const SAKLA_KEY = "deprem_ses_aktif_" + (OZEL ? "ozel" : "m" + ESIK);
 
   // Sayfa açılış zamanı (TR saati cinsinden epoch ms)
-  const BASLANGIC = Date.now();
+  // 15 dk öncesinden başlat: sayfa açıldığında son birkaç dakikadaki
+  // yeni depremleri de yakalasın (kullanıcı tam o sırada açtıysa kaçırmasın).
+  const BASLANGIC = Date.now() - 15 * 60 * 1000;
   const BASLANGIC_STR = new Date(BASLANGIC).toLocaleTimeString("tr-TR");
 
   let sesAktif = localStorage.getItem(SAKLA_KEY) !== "0";

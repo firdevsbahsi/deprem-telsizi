@@ -3,7 +3,7 @@
 //  - HTML/CSS/JS/manifest: cache-first (offline çalışsın)
 //  - /api/* : network-only (her zaman taze veri)
 
-const CACHE = "deprem-pwa-v7";
+const CACHE = "deprem-pwa-v8";
 const ON_BELLEK_DOSYALAR = [
   "/",
   "/m1",
