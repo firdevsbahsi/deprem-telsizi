@@ -168,8 +168,18 @@ def kandilli_den_cek(min_buyukluk: float = 0.0) -> list[dict]:
     """Kandilli Rasathanesi'nden son depremleri çeker (KOERI lst0.asp)."""
     import re
 
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                       "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "tr-TR,tr;q=0.9,en;q=0.8",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+    }
+    # Cache-buster: her istekte farklı URL (ISP/CDN cache'ini atlatmak için)
+    url = KANDILLI_URL + "?_=" + str(int(time.time()))
     try:
-        resp = requests.get(KANDILLI_URL, timeout=15)
+        resp = requests.get(url, timeout=15, headers=headers)
         resp.raise_for_status()
         resp.encoding = "utf-8"
         metin = resp.text
@@ -295,7 +305,14 @@ def html_den_cek(min_buyukluk: float = 0.0) -> list[dict]:
         return []
 
     try:
-        resp = requests.get(AFAD_HTML_URL, timeout=15)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+            "Cache-Control": "no-cache",
+        }
+        url = AFAD_HTML_URL + "?_=" + str(int(time.time()))
+        resp = requests.get(url, timeout=15, headers=headers)
         resp.raise_for_status()
         resp.encoding = "utf-8"
         soup = BeautifulSoup(resp.text, "html.parser")
