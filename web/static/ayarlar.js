@@ -93,27 +93,40 @@
 
   // ── Test paneli yardımcıları ──────────────────────────
   let audioCtx = null;
+  let masterGain = null;
+  function audioHazirla() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0.18;
+      masterGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    return audioCtx;
+  }
   function bipCal() {
     try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const simdi = audioCtx.currentTime;
-      [0, 0.22].forEach((gec, i) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+      const ctx = audioHazirla();
+      const simdi = ctx.currentTime;
+      [0, 0.28].forEach((gec, i) => {
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.value = 880 + i * 220;
-        gain.gain.setValueAtTime(0.0001, simdi + gec);
-        gain.gain.exponentialRampToValueAtTime(0.35, simdi + gec + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, simdi + gec + 0.18);
-        osc.connect(gain).connect(audioCtx.destination);
+        osc.frequency.value = 700 + i * 200;
+        env.gain.setValueAtTime(0, simdi + gec);
+        env.gain.linearRampToValueAtTime(1.0, simdi + gec + 0.04);
+        env.gain.linearRampToValueAtTime(0.7, simdi + gec + 0.12);
+        env.gain.linearRampToValueAtTime(0, simdi + gec + 0.22);
+        osc.connect(env).connect(masterGain);
         osc.start(simdi + gec);
-        osc.stop(simdi + gec + 0.2);
+        osc.stop(simdi + gec + 0.24);
       });
     } catch (e) {}
   }
 
   function konus(metin) {
     return new Promise((resolve) => {
+      try { speechSynthesis.cancel(); } catch (e) {}
       const u = new SpeechSynthesisUtterance(metin);
       u.lang = "tr-TR";
       u.rate = parseFloat(sesHiz.value) || 1.0;
@@ -124,8 +137,8 @@
       }
       u.onend = () => resolve();
       u.onerror = () => resolve();
-      speechSynthesis.cancel();
-      speechSynthesis.speak(u);
+      // Ufak bekleme: cancel sonrası queue temizlensin (parazit önleme)
+      setTimeout(() => speechSynthesis.speak(u), 100);
     });
   }
 
@@ -162,7 +175,7 @@
     durum("🚨 SİMÜLASYON BAŞLADI", "#ef4444");
     bipCal();
     if ("vibrate" in navigator) navigator.vibrate([200, 100, 200, 100, 400]);
-    await new Promise(r => setTimeout(r, 700));
+    await new Promise(r => setTimeout(r, 1000));
     await konus("Dikkat. Bu bir test simülasyonudur. Afet ve Acil Durum Başkanlığı verilerine göre saat " +
       new Date().toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) +
       " sularında Marmara Denizi ve çevresinde 5.2 büyüklüğünde yer sarsıntısı meydana gelmiştir.");
@@ -192,7 +205,7 @@
         const d = v.depremler[0];
         bipCal();
         if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
-        await new Promise(rr => setTimeout(rr, 600));
+        await new Promise(rr => setTimeout(rr, 1000));
         const saat = (d.tarih || "").split(" ")[1]?.substring(0,5) || "";
         const kurum = d.kaynak === "Kandilli"
           ? "Kandilli Rasathanesi verilerine göre"
