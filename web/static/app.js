@@ -25,6 +25,7 @@
     lon: ayarOku("ayar_lon", null),
     yaricap: ayarOku("ayar_yaricap", 500),
     sesHiz: ayarOku("ayar_ses_hiz", 1.0),
+    sesSeviyesi: ayarOku("ayar_ses_seviyesi", 1.0),
     sesAdi: ayarOku("ayar_ses_adi", ""),
   };
 
@@ -113,7 +114,7 @@
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.18;
+      masterGain.gain.value = 0.18 * (parseFloat(A.sesSeviyesi) || 1.0);
       masterGain.connect(audioCtx.destination);
     }
     if (audioCtx.state === "suspended") {
@@ -166,6 +167,7 @@
       if (v) u.voice = v;
       u.rate = parseFloat(A.sesHiz) || 1.0;
       u.pitch = 1.0;
+      u.volume = parseFloat(A.sesSeviyesi) || 1.0;
       u.onend = () => resolve();
       u.onerror = () => resolve();
       speechSynthesis.speak(u);

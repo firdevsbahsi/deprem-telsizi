@@ -13,6 +13,7 @@
   const konumAl = $("konum-al");
   const konumBilgi = $("konum-bilgi");
   const sesHiz = $("ses-hiz");
+  const sesSeviyesi = $("ses-seviyesi");
   const sesSecim = $("ses-secim");
   const sifirla = $("sifirla");
   // Test paneli
@@ -42,6 +43,7 @@
   yaricapDeger.textContent = yaricap.value + " km";
   yaricapRow.style.display = konumAktif.checked ? "" : "none";
   sesHiz.value = oku("ayar_ses_hiz", 1.0);
+  sesSeviyesi.value = oku("ayar_ses_seviyesi", 1.0);
 
   const lat = oku("ayar_lat", null);
   const lon = oku("ayar_lon", null);
@@ -89,6 +91,10 @@
     }, { enableHighAccuracy: false, timeout: 10000 });
   });
   sesHiz.addEventListener("change", () => yaz("ayar_ses_hiz", parseFloat(sesHiz.value)));
+  sesSeviyesi.addEventListener("change", () => {
+    yaz("ayar_ses_seviyesi", parseFloat(sesSeviyesi.value));
+    if (masterGain) masterGain.gain.value = 0.18 * (parseFloat(sesSeviyesi.value) || 1.0);
+  });
   sesSecim.addEventListener("change", () => yaz("ayar_ses_adi", sesSecim.value));
 
   // ── Test paneli yardımcıları ──────────────────────────
@@ -99,7 +105,7 @@
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.18;
+      masterGain.gain.value = 0.18 * (parseFloat(sesSeviyesi.value) || 1.0);
       masterGain.connect(audioCtx.destination);
     }
     if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
@@ -138,6 +144,7 @@
       const u = new SpeechSynthesisUtterance(metin);
       u.lang = "tr-TR";
       u.rate = parseFloat(sesHiz.value) || 1.0;
+      u.volume = parseFloat(sesSeviyesi.value) || 1.0;
       const ad = sesSecim.value;
       if (ad) {
         const v = speechSynthesis.getVoices().find(x => x.name === ad);
@@ -229,7 +236,7 @@
   });
   sifirla.addEventListener("click", () => {
     if (!confirm("Tüm ayarlar sıfırlansın mı?")) return;
-    ["ayar_min","ayar_konum_aktif","ayar_lat","ayar_lon","ayar_yaricap","ayar_ses_hiz","ayar_ses_adi"]
+    ["ayar_min","ayar_konum_aktif","ayar_lat","ayar_lon","ayar_yaricap","ayar_ses_hiz","ayar_ses_seviyesi","ayar_ses_adi"]
       .forEach(k => localStorage.removeItem(k));
     location.reload();
   });
