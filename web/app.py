@@ -21,8 +21,11 @@ import os
 import sys
 import time
 import math
+import asyncio
+import hashlib
 import threading
 from datetime import datetime, timezone, timedelta
+from collections import OrderedDict
 
 
 def _haversine_km(lat1, lon1, lat2, lon2):
@@ -39,7 +42,15 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if KOK not in sys.path:
     sys.path.insert(0, KOK)
 
-from flask import Flask, render_template, jsonify, request, send_from_directory, abort
+from flask import Flask, render_template, jsonify, request, send_from_directory, abort, Response
+
+try:
+    import edge_tts  # type: ignore
+    EDGE_TTS_VAR = True
+except Exception as _e:
+    edge_tts = None
+    EDGE_TTS_VAR = False
+    print(f"[edge-tts] yuklenemedi: {_e}")
 
 from deprem_telsiz import (
     html_den_cek,
@@ -308,6 +319,79 @@ def service_worker():
 def favicon():
     return send_from_directory(app.static_folder, "icon-192.png",
                                mimetype="image/png")
+
+
+# ── Sunucu Tarafi TTS (Microsoft Ahmet/Emel - edge-tts) ──────────────────────
+
+GECERLI_SESLER = {
+    "ahmet": "tr-TR-AhmetNeural",
+    "emel": "tr-TR-EmelNeural",
+}
+
+_TTS_CACHE = OrderedDict()  # key -> mp3 bytes
+_TTS_CACHE_LOCK = threading.Lock()
+_TTS_CACHE_MAX = 64
+
+
+async def _tts_uret_async(metin, ses_full, hiz_yuzde):
+    rate = f"+{hiz_yuzde}%" if hiz_yuzde >= 0 else f"{hiz_yuzde}%"
+    iletisim = edge_tts.Communicate(metin, ses_full, rate=rate)
+    parcalar = bytearray()
+    async for chunk in iletisim.stream():
+        if chunk.get("type") == "audio":
+            parcalar.extend(chunk["data"])
+    return bytes(parcalar)
+
+
+def _tts_uret(metin, ses_full, hiz_yuzde):
+    return asyncio.run(_tts_uret_async(metin, ses_full, hiz_yuzde))
+
+
+@app.route("/api/tts")
+def api_tts():
+    if not EDGE_TTS_VAR:
+        return jsonify({"ok": False, "hata": "edge-tts yuklu degil"}), 503
+
+    metin = (request.args.get("metin") or "").strip()
+    if not metin:
+        return jsonify({"ok": False, "hata": "metin bos"}), 400
+    if len(metin) > 600:
+        metin = metin[:600]
+
+    ses_kisa = (request.args.get("ses") or "ahmet").lower()
+    ses_full = GECERLI_SESLER.get(ses_kisa, GECERLI_SESLER["ahmet"])
+
+    try:
+        hiz = float(request.args.get("hiz", "1.0"))
+    except ValueError:
+        hiz = 1.0
+    hiz = max(0.5, min(1.5, hiz))
+    hiz_yuzde = int(round((hiz - 1.0) * 100))  # 1.0 -> 0, 1.25 -> 25, 0.75 -> -25
+
+    cache_key = hashlib.sha1(f"{ses_full}|{hiz_yuzde}|{metin}".encode("utf-8")).hexdigest()
+    with _TTS_CACHE_LOCK:
+        if cache_key in _TTS_CACHE:
+            mp3 = _TTS_CACHE.pop(cache_key)
+            _TTS_CACHE[cache_key] = mp3  # LRU: en sona
+            return Response(mp3, mimetype="audio/mpeg",
+                            headers={"Cache-Control": "public, max-age=3600"})
+
+    try:
+        mp3 = _tts_uret(metin, ses_full, hiz_yuzde)
+    except Exception as e:
+        print(f"[edge-tts] hata: {e}")
+        return jsonify({"ok": False, "hata": str(e)}), 500
+
+    if not mp3:
+        return jsonify({"ok": False, "hata": "bos cevap"}), 500
+
+    with _TTS_CACHE_LOCK:
+        _TTS_CACHE[cache_key] = mp3
+        while len(_TTS_CACHE) > _TTS_CACHE_MAX:
+            _TTS_CACHE.popitem(last=False)
+
+    return Response(mp3, mimetype="audio/mpeg",
+                    headers={"Cache-Control": "public, max-age=3600"})
 
 
 # ── Ana ──────────────────────────────────────────────────────────────────────

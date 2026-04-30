@@ -42,6 +42,15 @@
     <section class="grup">
       <label class="grup-baslik">Sesli Anons</label>
       <label class="satir">
+        <span>Ses motoru</span>
+        <select id="ses-motor">
+          <option value="tarayici" selected>Tarayıcı sesi (cihaza bağlı)</option>
+          <option value="sunucu-ahmet">Sunucu • Microsoft Ahmet (erkek) ⭐</option>
+          <option value="sunucu-emel">Sunucu • Microsoft Emel (kadın) ⭐</option>
+        </select>
+      </label>
+      <small class="ipucu">⭐ Sunucu sesi: tüm cihazlarda (Win7 dahil) aynı yüksek kaliteli Türkçe Microsoft Neural ses. Çevrimiçi gerektirir.</small>
+      <label class="satir">
         <span>Konuşma hızı</span>
         <select id="ses-hiz">
           <option value="0.5">0.5× — Çok Yavaş</option>
@@ -61,7 +70,7 @@
         </select>
       </label>
       <label class="satir">
-        <span>Ses seçimi</span>
+        <span>Tarayıcı sesi seçimi</span>
         <select id="ses-secim"><option value="">(otomatik tr-TR)</option></select>
       </label>
     </section>

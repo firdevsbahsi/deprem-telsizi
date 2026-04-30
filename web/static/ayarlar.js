@@ -15,6 +15,7 @@
   const sesHiz = $("ses-hiz");
   const sesSeviyesi = $("ses-seviyesi");
   const sesSecim = $("ses-secim");
+  const sesMotor = $("ses-motor");
   const sifirla = $("sifirla");
   // Test paneli
   const testSes = $("test-ses");
@@ -44,6 +45,15 @@
   yaricapRow.style.display = konumAktif.checked ? "" : "none";
   sesHiz.value = oku("ayar_ses_hiz", 1.0);
   sesSeviyesi.value = oku("ayar_ses_seviyesi", 1.0);
+  // Motor: "tarayici" | "sunucu" + isim "ahmet"|"emel"
+  (function () {
+    const motor = oku("ayar_ses_motor", "tarayici");
+    const isim = oku("ayar_ses_motor_isim", "ahmet");
+    if (sesMotor) {
+      if (motor === "sunucu") sesMotor.value = (isim === "emel") ? "sunucu-emel" : "sunucu-ahmet";
+      else sesMotor.value = "tarayici";
+    }
+  })();
 
   const lat = oku("ayar_lat", null);
   const lon = oku("ayar_lon", null);
@@ -96,6 +106,14 @@
     if (masterGain) masterGain.gain.value = 0.18 * (parseFloat(sesSeviyesi.value) || 1.0);
   });
   sesSecim.addEventListener("change", () => yaz("ayar_ses_adi", sesSecim.value));
+  if (sesMotor) {
+    sesMotor.addEventListener("change", () => {
+      const v = sesMotor.value;
+      if (v === "sunucu-ahmet") { yaz("ayar_ses_motor", "sunucu"); yaz("ayar_ses_motor_isim", "ahmet"); }
+      else if (v === "sunucu-emel") { yaz("ayar_ses_motor", "sunucu"); yaz("ayar_ses_motor_isim", "emel"); }
+      else { yaz("ayar_ses_motor", "tarayici"); }
+    });
+  }
 
   // ── Test paneli yardımcıları ──────────────────────────
   let audioCtx = null;
@@ -138,7 +156,7 @@
     } catch (e) {}
   }
 
-  function konus(metin) {
+  function konusTarayici(metin) {
     return new Promise((resolve) => {
       try { speechSynthesis.cancel(); } catch (e) {}
       const u = new SpeechSynthesisUtterance(metin);
@@ -152,9 +170,33 @@
       }
       u.onend = () => resolve();
       u.onerror = () => resolve();
-      // Ufak bekleme: cancel sonrası queue temizlensin (parazit önleme)
       setTimeout(() => speechSynthesis.speak(u), 100);
     });
+  }
+
+  function konusSunucu(metin, isim) {
+    return new Promise((resolve) => {
+      try {
+        const hiz = parseFloat(sesHiz.value) || 1.0;
+        const url = "/api/tts?ses=" + encodeURIComponent(isim || "ahmet")
+                  + "&hiz=" + encodeURIComponent(hiz)
+                  + "&metin=" + encodeURIComponent(metin);
+        const audio = new Audio(url);
+        audio.volume = parseFloat(sesSeviyesi.value) || 1.0;
+        audio.onended = () => resolve();
+        audio.onerror = () => { konusTarayici(metin).then(resolve); };
+        audio.play().catch(() => konusTarayici(metin).then(resolve));
+      } catch (e) { konusTarayici(metin).then(resolve); }
+    });
+  }
+
+  function konus(metin) {
+    const motor = oku("ayar_ses_motor", "tarayici");
+    if (motor === "sunucu") {
+      const isim = oku("ayar_ses_motor_isim", "ahmet");
+      return konusSunucu(metin, isim);
+    }
+    return konusTarayici(metin);
   }
 
   function durum(s, renk) {
@@ -236,7 +278,7 @@
   });
   sifirla.addEventListener("click", () => {
     if (!confirm("Tüm ayarlar sıfırlansın mı?")) return;
-    ["ayar_min","ayar_konum_aktif","ayar_lat","ayar_lon","ayar_yaricap","ayar_ses_hiz","ayar_ses_seviyesi","ayar_ses_adi"]
+    ["ayar_min","ayar_konum_aktif","ayar_lat","ayar_lon","ayar_yaricap","ayar_ses_hiz","ayar_ses_seviyesi","ayar_ses_adi","ayar_ses_motor","ayar_ses_motor_isim"]
       .forEach(k => localStorage.removeItem(k));
     location.reload();
   });

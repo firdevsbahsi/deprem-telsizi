@@ -158,7 +158,7 @@
     return sesler.find((v) => /tr/i.test(v.lang)) || null;
   }
 
-  function konus(metin) {
+  function konusTarayici(metin) {
     return new Promise((resolve) => {
       if (!("speechSynthesis" in window)) return resolve();
       const u = new SpeechSynthesisUtterance(metin);
@@ -172,6 +172,38 @@
       u.onerror = () => resolve();
       speechSynthesis.speak(u);
     });
+  }
+
+  // Sunucu TTS (edge-tts: Microsoft Ahmet/Emel) - Win7 dahil tum cihazlarda
+  // ayni yuksek kaliteli ses. Hata olursa tarayici TTS'ine duser.
+  function konusSunucu(metin) {
+    return new Promise((resolve) => {
+      try {
+        const ses = ayarOku("ayar_ses_motor_isim", "ahmet"); // ahmet | emel
+        const hiz = parseFloat(A.sesHiz) || 1.0;
+        const url = "/api/tts?ses=" + encodeURIComponent(ses)
+                  + "&hiz=" + encodeURIComponent(hiz)
+                  + "&metin=" + encodeURIComponent(metin);
+        const audio = new Audio(url);
+        audio.volume = parseFloat(A.sesSeviyesi) || 1.0;
+        audio.onended = () => resolve();
+        audio.onerror = () => {
+          console.warn("[tts] sunucu TTS hata, tarayici sesine dusuluyor");
+          konusTarayici(metin).then(resolve);
+        };
+        audio.play().catch(() => {
+          konusTarayici(metin).then(resolve);
+        });
+      } catch (e) {
+        konusTarayici(metin).then(resolve);
+      }
+    });
+  }
+
+  function konus(metin) {
+    const motor = ayarOku("ayar_ses_motor", "tarayici"); // "tarayici" | "sunucu"
+    if (motor === "sunucu") return konusSunucu(metin);
+    return konusTarayici(metin);
   }
 
   // ── Kuyruk işleyici (depremleri tek tek sırayla okur) ───
