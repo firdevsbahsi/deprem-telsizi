@@ -87,12 +87,18 @@ def _veri_cek_simdi():
     # AFAD: önce resmi JSON API (en hızlı ve güncel — frontend'in kullandığı endpoint),
     # başarısızsa HTML scraping, sonra Türkiye proxy'si.
     afad = afad_api_cek(min_buyukluk=0.0)
+    afad_kaynak = "api" if afad else ""
     if not afad:
         afad = html_den_cek(min_buyukluk=0.0)
+        if afad:
+            afad_kaynak = "html"
     if not afad:
         afad = _proxy_afad_cek(min_buyukluk=0.0)
+        if afad:
+            afad_kaynak = "proxy"
     if afad:
         tum.extend(afad)
+    print(f"[veri-cek] AFAD kaynak={afad_kaynak} adet={len(afad) if afad else 0}; en yeni={afad[0]['tarih'] if afad else '-'}")
 
     # Kandilli: önce proxy, başarısızsa HTML scraping
     kandilli = _proxy_kandilli_cek(min_buyukluk=0.0)
