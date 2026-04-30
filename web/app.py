@@ -150,8 +150,10 @@ _arka_plan_thread.start()
 
 
 def _deprem_id(d):
-    """Bir depreme tekrarsız kimlik üretir (frontend'de yeni deprem tespiti için)."""
-    return f"{d.get('tarih','')}|{d.get('enlem','')}|{d.get('boylam','')}|{d.get('buyukluk','')}"
+    """Bir depreme tekrarsiz kimlik üretir (frontend'de yeni deprem tespiti için).
+    Büyüklük dahil edilmez — AFAD M0.8 → Kandilli M1.4 güncellemesinde ID sabit kalır.
+    """
+    return f"{d.get('tarih','')}|{d.get('enlem','')}|{d.get('boylam','')}"
 
 
 def _serialize(d):

@@ -39,7 +39,7 @@
 
   if (OZEL && baslikEl) baslikEl.textContent = `Özel — M${ESIK.toFixed(1)}+`;
 
-  const YENILEME_MS = 20000; // 20 sn (sunucu zaten arka planda çekiyor)
+  const YENILEME_MS = 15000; // 15 sn (sunucu zaten arka planda çekiyor)
   const SAKLA_KEY = "deprem_ses_aktif_" + (OZEL ? "ozel" : "m" + ESIK);
 
   // Sayfa açılış zamanı (TR saati cinsinden epoch ms)
@@ -391,6 +391,11 @@
         }
         // Eskiden yeniye oku
         okunacaklar.sort((a, b) => tarihParse(a.tarih) - tarihParse(b.tarih));
+
+        if (okunacaklar.length > 0) {
+          console.log(`[deprem] ${okunacaklar.length} yeni deprem bulundu, sesAktif=${sesAktif}`,
+                      okunacaklar.map(d => `${d.tarih} M${d.buyukluk} ${d.yer}`));
+        }
 
         if (okunacaklar.length > 0 && sesAktif) {
           for (const d of okunacaklar) {
