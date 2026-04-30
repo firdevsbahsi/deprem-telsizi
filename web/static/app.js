@@ -300,12 +300,18 @@
           .join("");
       }
 
-      // İlk yüklemede listeyi sessizce "görüldü" işaretle.
+      // İlk yüklemede: en son depremi sesli oku, gerisini sessizce işaretle.
       // Sonraki yüklemelerde API'ye düşen YENİ id'leri (tarihi ne olursa olsun)
       // sesli oku — Kandilli/AFAD geç yayınlasa bile yakalansın.
       if (ilkYukleme) {
-        for (const d of veri.depremler) okunanIdler.add(d.id);
         ilkYukleme = false;
+        // Listede en yeni en üstte → ilk eleman = en son deprem
+        const enSon = veri.depremler[0];
+        for (const d of veri.depremler) okunanIdler.add(d.id);
+        if (enSon && sesAktif) {
+          okumaKuyrugu.push(enSon);
+          kuyruguIsle();
+        }
       } else {
         const okunacaklar = [];
         for (const d of veri.depremler) {
