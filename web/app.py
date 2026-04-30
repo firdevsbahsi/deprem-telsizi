@@ -72,10 +72,10 @@ def _veri_cek_simdi():
     """
     tum = []
 
-    # AFAD: önce proxy, başarısızsa HTML
-    afad = _proxy_afad_cek(min_buyukluk=0.0)
+    # AFAD: önce resmi HTML (en doğru), başarısızsa proxy
+    afad = html_den_cek(min_buyukluk=0.0)
     if not afad:
-        afad = html_den_cek(min_buyukluk=0.0)
+        afad = _proxy_afad_cek(min_buyukluk=0.0)
     if afad:
         tum.extend(afad)
 
