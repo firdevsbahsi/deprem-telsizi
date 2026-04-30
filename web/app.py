@@ -72,7 +72,7 @@ _CACHE = {"zaman": 0, "veri": [], "guncelleme": ""}
 _CACHE_LOCK = threading.Lock()
 _ARKA_PLAN_ARALIK = 20  # saniye
 
-GECERLI_ESIKLER = {1.0, 2.0, 3.0}
+GECERLI_ESIKLER = {1.0, 2.0, 3.0, 4.0, 5.0}
 
 
 def _veri_cek_simdi():
@@ -171,7 +171,7 @@ def ana_sayfa():
 def izleme(esik):
     if float(esik) not in GECERLI_ESIKLER:
         abort(404)
-    baslik_renk = {1: "#22c55e", 2: "#f59e0b", 3: "#ef4444"}[esik]
+    baslik_renk = {1: "#22c55e", 2: "#f59e0b", 3: "#ef4444", 4: "#b91c1c", 5: "#7f1d1d"}[esik]
     return render_template("izleme.html", esik=esik, baslik_renk=baslik_renk,
                            baslik=f"M{esik}.0+", ozel=False)
 

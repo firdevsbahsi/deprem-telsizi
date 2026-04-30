@@ -37,6 +37,8 @@ html, body {
 .kart.yesil   { background: linear-gradient(135deg, #16a34a, #22c55e); }
 .kart.sari    { background: linear-gradient(135deg, #d97706, #f59e0b); }
 .kart.kirmizi { background: linear-gradient(135deg, #dc2626, #ef4444); }
+.kart.kirmizi.koyu  { background: linear-gradient(135deg, #991b1b, #b91c1c); }
+.kart.kirmizi.koyu2 { background: linear-gradient(135deg, #450a0a, #7f1d1d); }
 
 .ana-footer {
   text-align: center;
