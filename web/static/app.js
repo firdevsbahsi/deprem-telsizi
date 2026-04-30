@@ -105,17 +105,24 @@
   // ── Bip + TTS ──────────────────────────────────────────
   let audioCtx = null;
   let masterGain = null;
+  let suspendTimer = null;
   function audioHazirla() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.18; // genel ses seviyesi (paraziti azaltır)
+      masterGain.gain.value = 0.18;
       masterGain.connect(audioCtx.destination);
     }
     if (audioCtx.state === "suspended") {
       audioCtx.resume().catch(() => {});
     }
     return audioCtx;
+  }
+  function audioSus() {
+    if (suspendTimer) clearTimeout(suspendTimer);
+    suspendTimer = setTimeout(() => {
+      try { if (audioCtx && audioCtx.state === "running") audioCtx.suspend(); } catch (e) {}
+    }, 800);
   }
   function bipCal() {
     try {
@@ -125,16 +132,16 @@
         const osc = ctx.createOscillator();
         const env = ctx.createGain();
         osc.type = "sine";
-        osc.frequency.value = 700 + i * 200; // 700/900 Hz: daha yumuşak
-        // Yumuşak ADSR — "click"siz atış/çöküş
+        osc.frequency.value = 700 + i * 200;
         env.gain.setValueAtTime(0, simdi + gec);
-        env.gain.linearRampToValueAtTime(1.0, simdi + gec + 0.04);   // attack 40 ms
-        env.gain.linearRampToValueAtTime(0.7, simdi + gec + 0.12);   // decay
-        env.gain.linearRampToValueAtTime(0, simdi + gec + 0.22);     // release
+        env.gain.linearRampToValueAtTime(1.0, simdi + gec + 0.04);
+        env.gain.linearRampToValueAtTime(0.7, simdi + gec + 0.12);
+        env.gain.linearRampToValueAtTime(0, simdi + gec + 0.22);
         osc.connect(env).connect(masterGain);
         osc.start(simdi + gec);
         osc.stop(simdi + gec + 0.24);
       });
+      audioSus();
     } catch (e) {}
   }
 

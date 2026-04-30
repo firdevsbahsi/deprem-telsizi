@@ -94,6 +94,7 @@
   // ── Test paneli yardımcıları ──────────────────────────
   let audioCtx = null;
   let masterGain = null;
+  let suspendTimer = null;
   function audioHazirla() {
     if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -103,6 +104,12 @@
     }
     if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
     return audioCtx;
+  }
+  function audioSus() {
+    if (suspendTimer) clearTimeout(suspendTimer);
+    suspendTimer = setTimeout(() => {
+      try { if (audioCtx && audioCtx.state === "running") audioCtx.suspend(); } catch (e) {}
+    }, 800);
   }
   function bipCal() {
     try {
@@ -121,6 +128,7 @@
         osc.start(simdi + gec);
         osc.stop(simdi + gec + 0.24);
       });
+      audioSus();
     } catch (e) {}
   }
 
