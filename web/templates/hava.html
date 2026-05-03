@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Hava Durumu Anonsu</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="apple-touch-icon" href="/static/icon-192.png" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/tema.js" defer></script>
+</head>
+<body class="izleme" style="--vurgu:#0ea5e9;">
+  <header class="izleme-header">
+    <a href="/" class="geri">←</a>
+    <h1>☁️ Hava Durumu</h1>
+  </header>
+
+  <main class="anons-main">
+    <div class="anons-form aktif">
+      <label>Şehir</label>
+      <input id="sehir" type="text" placeholder="Ankara, İstanbul, İzmir…" autocomplete="off" />
+
+      <label>Ses</label>
+      <select id="ses">
+        <option value="ahmet">Ahmet (Erkek)</option>
+        <option value="emel">Emel (Kadın)</option>
+      </select>
+
+      <div class="btn-sira">
+        <button id="btn-getir" class="anons-btn primer">🌡 Hava Durumunu Al</button>
+        <button id="btn-anons" class="anons-btn ikincil" disabled>🔊 Anons Et</button>
+      </div>
+
+      <div id="sonuc" class="anons-sonuc"></div>
+    </div>
+  </main>
+
+  <audio id="oynatici" preload="auto" hidden></audio>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let sonHava = null;
+
+    async function getir() {
+      const sehir = $("sehir").value.trim();
+      if (!sehir) return;
+      $("sonuc").innerHTML = '<div class="bekle">Yükleniyor…</div>';
+      $("btn-anons").disabled = true;
+      try {
+        const r = await fetch(`/api/hava?sehir=${encodeURIComponent(sehir)}`);
+        const v = await r.json();
+        if (!v.ok) throw new Error(v.hata || "Bilinmeyen hata");
+        sonHava = v;
+        $("sonuc").innerHTML = `
+          <div class="hava-kart">
+            <div class="hava-sehir">${v.sehir}${v.ulke ? ", " + v.ulke : ""}</div>
+            <div class="hava-durum">${v.durum}</div>
+            <div class="hava-deger"><span>🌡</span> ${v.sicaklik}°C</div>
+            <div class="hava-deger"><span>💧</span> %${v.nem}</div>
+            <div class="hava-deger"><span>💨</span> ${v.ruzgar} km/sa</div>
+          </div>`;
+        $("btn-anons").disabled = false;
+      } catch (e) {
+        $("sonuc").innerHTML = `<div class="hata">⚠ ${e.message}</div>`;
+      }
+    }
+
+    async function anons() {
+      if (!sonHava) return;
+      const h = sonHava;
+      const metin = `${h.sehir} hava durumu. ${h.durum}. ` +
+                    `Sıcaklık ${Math.round(h.sicaklik)} derece, ` +
+                    `nem yüzde ${Math.round(h.nem)}, ` +
+                    `rüzgar saatte ${Math.round(h.ruzgar)} kilometre.`;
+      const ses = $("ses").value;
+      const url = `/api/tts?metin=${encodeURIComponent(metin)}&ses=${ses}`;
+      const oy = $("oynatici");
+      oy.src = url;
+      try { await oy.play(); } catch(e) {}
+    }
+
+    $("btn-getir").addEventListener("click", getir);
+    $("btn-anons").addEventListener("click", anons);
+    $("sehir").addEventListener("keydown", (e) => { if (e.key === "Enter") getir(); });
+  </script>
+</body>
+</html>

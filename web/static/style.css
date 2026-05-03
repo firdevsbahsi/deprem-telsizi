@@ -474,3 +474,88 @@ body.tema-acik .tema-btn { color: #0f172a; border-color: #cbd5e1; }
 body.tema-acik .deprem .oku-btn { background: #eff6ff; color: #2563eb; border-color: #93c5fd; }
 body.tema-acik .deprem .oku-btn:hover { background: #2563eb; color: white; }
 
+
+
+/* === Diger Anonslar bolumu === */
+.bolum-baslik {
+  text-align: center;
+  font-size: 1.3rem;
+  margin: 32px 16px 12px;
+  color: var(--metin, #0f172a);
+  letter-spacing: 0.3px;
+}
+body.koyu .bolum-baslik { color: #f1f5f9; }
+
+.kart.mavi   { background: linear-gradient(135deg,#0ea5e9,#0369a1); color:#fff; }
+.kart.pembe  { background: linear-gradient(135deg,#ec4899,#9d174d); color:#fff; }
+.kart.mor    { background: linear-gradient(135deg,#8b5cf6,#5b21b6); color:#fff; }
+
+/* === Hava sayfasi === */
+.hava-kart {
+  margin: 16px;
+  padding: 24px;
+  border-radius: 16px;
+  background: linear-gradient(135deg,#0ea5e9,#0369a1);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.hava-sehir { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+.hava-durum { font-size: 1.1rem; opacity: 0.9; margin-bottom: 16px; }
+.hava-deger { font-size: 3rem; font-weight: 700; margin-bottom: 8px; }
+.hava-detay { font-size: 0.95rem; opacity: 0.85; }
+
+/* === Anons formlari === */
+.anons-tablar {
+  display: flex;
+  gap: 8px;
+  margin: 16px 16px 0;
+}
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #cbd5e1;
+  background: transparent;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--metin, #0f172a);
+}
+.tab-btn.aktif {
+  background: var(--vurgu, #dc2626);
+  color: #fff;
+  border-color: var(--vurgu, #dc2626);
+}
+body.koyu .tab-btn { color:#f1f5f9; border-color:#475569; }
+
+.anons-main { padding: 0 16px 80px; }
+.anons-form { display:none; flex-direction: column; gap: 6px; margin-top: 16px; }
+.anons-form.aktif { display: flex; }
+.anons-form label { font-weight: 600; margin-top: 8px; font-size: 0.9rem; }
+.anons-form input, .anons-form select, .anons-form textarea {
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--kart-bg, #fff);
+  color: var(--metin, #0f172a);
+}
+body.koyu .anons-form input,
+body.koyu .anons-form select,
+body.koyu .anons-form textarea { background:#1e293b; color:#f1f5f9; border-color:#475569; }
+
+.btn-sira { display: flex; gap: 8px; margin-top: 16px; }
+.anons-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.anons-btn.primer { background: var(--vurgu, #dc2626); color: #fff; }
+.anons-btn.ikincil { background: #94a3b8; color: #fff; }
+.anons-durum { margin-top: 16px; padding: 12px; border-radius: 10px; text-align: center; font-size: 0.95rem; }
+.ses-sec { margin-bottom: 8px; }

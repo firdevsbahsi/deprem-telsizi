@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Anons</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#dc2626" />
+  <link rel="apple-touch-icon" href="/static/icon-192.png" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/tema.js" defer></script>
+</head>
+<body class="izleme" style="--vurgu:#dc2626;">
+  <header class="izleme-header">
+    <a href="/" class="geri">&larr;</a>
+    <h1>📡 Anons</h1>
+  </header>
+
+  <div class="anons-tablar">
+    <button class="tab-btn aktif" data-tab="kan">🩨 Kan Anonsu</button>
+    <button class="tab-btn" data-tab="manuel">🗣 Manuel Anons</button>
+  </div>
+
+  <main class="anons-main">
+    <section id="tab-kan" class="anons-form aktif">
+      <label>Kan Grubu</label>
+      <select id="kan-grup">
+        <option>A Rh+</option><option>A Rh-</option>
+        <option>B Rh+</option><option>B Rh-</option>
+        <option>AB Rh+</option><option>AB Rh-</option>
+        <option>0 Rh+</option><option>0 Rh-</option>
+      </select>
+
+      <label>Hastane</label>
+      <input id="kan-hastane" type="text" placeholder="Örn: Numune Hastanesi" />
+
+      <label>Şehir / İlçe (opsiyonel)</label>
+      <input id="kan-sehir" type="text" placeholder="Örn: Ankara" />
+
+      <label>İletişim (opsiyonel)</label>
+      <input id="kan-iletisim" type="text" placeholder="Örn: 0312 123 45 67" />
+
+      <label>Ses</label>
+      <select class="ses-sec">
+        <option value="ahmet">Ahmet (Erkek)</option>
+        <option value="emel">Emel (Kadın)</option>
+      </select>
+
+      <div class="btn-sira">
+        <button id="btn-kan" class="anons-btn primer">🔊 Kan Anonsu Yap</button>
+      </div>
+    </section>
+
+    <section id="tab-manuel" class="anons-form">
+      <label>Anons Metni</label>
+      <textarea id="manuel-metin" rows="8" placeholder="Anons edilecek metni buraya yazın…"></textarea>
+
+      <label>Ses</label>
+      <select class="ses-sec">
+        <option value="ahmet">Ahmet (Erkek)</option>
+        <option value="emel">Emel (Kadın)</option>
+      </select>
+
+      <div class="btn-sira">
+        <button id="btn-manuel" class="anons-btn primer">🔊 Anons Et</button>
+        <button id="btn-temizle" class="anons-btn ikincil">🗑 Temizle</button>
+      </div>
+    </section>
+
+    <div id="durum-msg" class="anons-durum"></div>
+  </main>
+
+  <audio id="oynatici" preload="auto" hidden></audio>
+
+  <script>
+    var $ = function(id){ return document.getElementById(id); };
+    document.querySelectorAll(".tab-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("aktif"); });
+        document.querySelectorAll(".anons-form").forEach(function(s){ s.classList.remove("aktif"); });
+        btn.classList.add("aktif");
+        $("tab-" + btn.dataset.tab).classList.add("aktif");
+      });
+    });
+
+    function konus(metin, ses){
+      if (!metin.trim()) return;
+      $("durum-msg").textContent = "🔊 Anons çalıyær";
+      var url = "/api/tts?metin=" + encodeURIComponent(metin) + "&ses=" + ses;
+      var oy = $("oynatici");
+      oy.src = url;
+      oy.play().then(function(){
+        oy.onended = function(){ $("durum-msg").textContent = "✓ Anons tamamlandı"; };
+      }).catch(function(e){
+        $("durum-msg").textContent = "⚠ Ses oynatılamadı: " + e.message;
+      });
+    }
+
+    function aktifSes(form){ return form.querySelector(".ses-sec").value; }
+
+    $("btn-kan").addEventListener("click", function(){
+      var grup = $("kan-grup").value;
+      var hast = $("kan-hastane").value.trim();
+      var seh  = $("kan-sehir").value.trim();
+      var ilet = $("kan-iletisim").value.trim();
+      if (!hast){ alert("Hastane bilgisi gerekli"); return; }
+      var metin = "Acil kan ihtiyacı duyurusu. " +
+        (seh ? seh + " ilinde " : "") +
+        hast + " hastanesinde " + grup + " kan grubuna ihtiyaç vardır. " +
+        (ilet ? "İletişim numarası " + ilet + ". " : "") +
+        "Yardımcı olabilecek bağışçıların hastaneye başvurması rica olunur.";
+      konus(metin, aktifSes($("tab-kan")));
+    });
+
+    $("btn-manuel").addEventListener("click", function(){
+      var metin = $("manuel-metin").value.trim();
+      if (!metin) return;
+      konus(metin, aktifSes($("tab-manuel")));
+    });
+
+    $("btn-temizle").addEventListener("click", function(){
+      $("manuel-metin").value = "";
+    });
+  </script>
+</body>
+</html>

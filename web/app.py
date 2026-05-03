@@ -422,3 +422,70 @@ if __name__ == "__main__":
     print(" Telefondan: http://<bilgisayar-ip>:5000")
     print("=" * 60)
     app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
+
+
+# ===== Hava Durumu / Anons sayfalari =====
+import json as _json
+from urllib import request as _urlreq, parse as _urlparse
+
+@app.route("/hava")
+def hava_sayfa():
+    return render_template("hava.html")
+
+@app.route("/anons")
+def anons_sayfa():
+    return render_template("anons.html")
+
+_OPEN_METEO_GEO = "https://geocoding-api.open-meteo.com/v1/search"
+_OPEN_METEO_FC  = "https://api.open-meteo.com/v1/forecast"
+_HAVA_UA = {"User-Agent": "Mozilla/5.0 DepremTelsiz/1.0"}
+
+WMO_TR = {
+    0: "acik", 1: "az bulutlu", 2: "parcali bulutlu", 3: "kapali",
+    45: "sisli", 48: "kiragili sis",
+    51: "hafif cisenti", 53: "orta cisenti", 55: "yogun cisenti",
+    61: "hafif yagmur", 63: "orta yagmur", 65: "siddetli yagmur",
+    66: "donan hafif yagmur", 67: "donan siddetli yagmur",
+    71: "hafif kar", 73: "orta kar", 75: "yogun kar", 77: "kar taneleri",
+    80: "hafif saganak", 81: "orta saganak", 82: "siddetli saganak",
+    85: "hafif kar saganagi", 86: "yogun kar saganagi",
+    95: "gok gurultulu firtina", 96: "dolu ile firtina", 99: "siddetli dolu firtinasi",
+}
+
+def _hava_http_json(url, timeout=10):
+    req = _urlreq.Request(url, headers=_HAVA_UA)
+    with _urlreq.urlopen(req, timeout=timeout) as r:
+        return _json.loads(r.read().decode("utf-8", errors="replace"))
+
+@app.route("/api/hava")
+def api_hava():
+    sehir = (request.args.get("sehir") or "").strip()
+    if not sehir:
+        return jsonify({"ok": False, "hata": "sehir bos"}), 400
+    try:
+        qs = _urlparse.urlencode({"name": sehir, "count": 1, "language": "tr", "format": "json"})
+        geo = _hava_http_json(f"{_OPEN_METEO_GEO}?{qs}")
+        if not geo.get("results"):
+            return jsonify({"ok": False, "hata": "Sehir bulunamadi"}), 404
+        g = geo["results"][0]
+        qs2 = _urlparse.urlencode({
+            "latitude": g["latitude"],
+            "longitude": g["longitude"],
+            "current": "temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m",
+            "timezone": "Europe/Istanbul",
+        })
+        fc = _hava_http_json(f"{_OPEN_METEO_FC}?{qs2}")
+        cur = fc.get("current") or {}
+        kod = cur.get("weather_code")
+        return jsonify({
+            "ok": True,
+            "sehir": g.get("name", sehir),
+            "ulke": g.get("country", ""),
+            "sicaklik": cur.get("temperature_2m"),
+            "kod": kod,
+            "durum": WMO_TR.get(kod, "bilinmiyor"),
+            "ruzgar": cur.get("wind_speed_10m"),
+            "nem": cur.get("relative_humidity_2m"),
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "hata": str(e)}), 500
