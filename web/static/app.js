@@ -39,7 +39,7 @@
 
   if (OZEL && baslikEl) baslikEl.textContent = `Özel — M${ESIK.toFixed(1)}+`;
 
-  const YENILEME_MS = 8000; // 8 sn (sunucu zaten arka planda çekiyor)
+  const YENILEME_MS = 15000; // 15 sn (sunucu zaten arka planda çekiyor)
   const SAKLA_KEY = "deprem_ses_aktif_" + (OZEL ? "ozel" : "m" + ESIK);
 
   // Sayfa açılış zamanı (TR saati cinsinden epoch ms)
