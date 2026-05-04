@@ -389,13 +389,12 @@ def afad_api_cek(min_buyukluk: float = 0.0, son_saat: int = 24) -> list:
     (Render gibi yurtdışı sunuculardan AFAD bazen Cloudflare blokluyor).
     """
     tr_saat = timezone(timedelta(hours=3))
-    # AFAD apiv2 hem giriş hem çıkış için UTC kullanır.
-    simdi_utc = datetime.now(tz=timezone.utc)
-    oncesi_utc = simdi_utc - timedelta(hours=son_saat)
+    simdi = datetime.now(tz=tr_saat)
+    oncesi = simdi - timedelta(hours=son_saat)
     fmt = "%Y-%m-%dT%H:%M:%S"
     params = {
-        "start": oncesi_utc.strftime(fmt),
-        "end": simdi_utc.strftime(fmt),
+        "start": oncesi.strftime(fmt),
+        "end": simdi.strftime(fmt),
         "orderby": "timedesc",
         "minmag": str(min_buyukluk) if min_buyukluk > 0 else "0",
     }
