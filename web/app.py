@@ -71,7 +71,7 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 # çekilir; kullanıcı bekletilmez.
 _CACHE = {"zaman": 0, "veri": [], "guncelleme": ""}
 _CACHE_LOCK = threading.Lock()
-_ARKA_PLAN_ARALIK = 20  # saniye
+_ARKA_PLAN_ARALIK = 8  # saniye
 
 GECERLI_ESIKLER = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0}
 
